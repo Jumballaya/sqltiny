@@ -5,14 +5,14 @@ ifeq ($(OS),Windows_NT)
 	CP = copy
 	INSTALL_DIR = C:\\windows\\system32\\
   else # in a bash-like shell, like msys
-	CLEANUP = rm -f
+	CLEANUP = rm -rf
 	MKDIR = mkdir -p
 	CP = cp
 	INSTALL_DIR = /usr/bin/
   endif
 	TARGET_EXTENSION=.exe
 else
-	CLEANUP = rm -f
+	CLEANUP = rm -rf
 	MKDIR = mkdir -p
 	TARGET_EXTENSION=out
 	CP = cp
@@ -27,7 +27,6 @@ UNITY_DIR = unity/src/
 
 CC = cc
 FLAGS = -Wall
-FLAGS_TEST = -Wall -I$(UNITY_DIR)
 
 BIN_NAME = sqltiny
 
@@ -35,11 +34,6 @@ SOURCES = $(wildcard src/*.c)
 SOURCES_TEST = $(wildcard tests/*.c)
 HEADERS = $(wildcard src/*h)
 OBJ = $(patsubst $(SRC_DIR)%,$(BUILD_DIR)%,$(SOURCES:.c=.o))
-
-RESULTS = $(patsubst $(TEST_DIR)Test%,$(BUILD_DIR)%,$(SOURCES_TEST:.c=.o))
-PASSED = `grep -s PASS $(PATHR)*.txt`
-FAIL = `grep -s FAIL $(PATHR)*.txt`
-IGNORE = `grep -s IGNORE $(PATHR)*.txt`
 
 $(BIN_DIR)$(BIN_NAME): $(OBJ)
 	$(MKDIR) $(BIN_DIR)
@@ -49,25 +43,13 @@ $(BUILD_DIR)%.o: $(SRC_DIR)%.c $(HEADERS)
 	$(MKDIR) $(BUILD_DIR)
 	$(CC) -c -o $@ $< $(FLAGS)
 
-$(BUILD_DIR)%.o: $(TEST_DIR)Test%.c $(HEADERS)
-	$(MKDIR) $(BUILD_DIR)
-	$(CC) -c -o $@ $< $(FLAGS_TEST)
-
 install:
 	$(CP) $(BIN_DIR)$(BIN_NAME) $(INSTALL_DIR)$(BIN_NAME)
 
-test: $(OBJS) $(RESULTS)
-	@echo "-----------------------\nIGNORES:\n-----------------------"
-	@echo "$(IGNORE)"
-	@echo "-----------------------\nFAILURES:\n-----------------------"
-	@echo "$(FAIL)"
-	@echo "-----------------------\nPASSED:\n-----------------------"
-	@echo "$(PASSED)"
-	@echo "\nDONE"
-
-.PHONY: build clean
-.PHONY: test
+.PHONY: build
+.PHONY: clean
+.PHONY: install
 
 clean:
-	@rm -rf bin
-	@rm -rf build
+	$(CLEANUP) $(BUILD_DIR)
+	$(CLEANUP) $(BIN_DIR)
