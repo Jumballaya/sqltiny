@@ -46,8 +46,12 @@ $(BUILD_DIR)%.o: $(SRC_DIR)%.c $(HEADERS)
 install:
 	$(CP) $(BIN_DIR)$(BIN_NAME) $(INSTALL_DIR)$(BIN_NAME)
 
+test: $(BIN_DIR)$(BIN_NAME)
+	bundle exec rspec
+
 .PHONY: build
 .PHONY: clean
+.PHONY: test
 .PHONY: install
 
 clean:

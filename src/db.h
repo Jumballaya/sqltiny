@@ -35,8 +35,8 @@ typedef struct Col_t Col;
 // Row
 struct Row_t {
   uint32_t  id;
-  char      username[COL_VARCHAR_SIZE];
-  char      email[COL_VARCHAR_SIZE];
+  char      username[COL_VARCHAR_SIZE + 1];
+  char      email[COL_VARCHAR_SIZE + 1];
   //Col** columns;
 };
 typedef struct Row_t Row;

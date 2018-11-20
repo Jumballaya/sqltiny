@@ -55,7 +55,7 @@ CommandResult repl_command(InputBuffer* buf) {
   if (strcmp(buf->buffer, ".exit") == 0) {
     exit(EXIT_SUCCESS);
   } else if (strcmp(buf->buffer, ".help") == 0) {
-    print_usage();
+    /*print_usage();*/
     print_commands();
     return COMMAND_SUCCESS;
   } else if (strcmp(buf->buffer, ".open") == 0) {
@@ -68,7 +68,7 @@ CommandResult repl_command(InputBuffer* buf) {
 
 // Runs a REPL
 void repl_run(Repl* repl) {
-  print_usage();
+  /*print_usage();*/
 
   Table* table = db_new_table();
 
