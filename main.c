@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 /*#include "cli.h"*/
-#include "repl.h"
+#include "src/repl.h"
 
 int main(int argc, char** argv) {
   /*CLI* cli = cli_new(argc, argv);*/
