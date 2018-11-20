@@ -5,8 +5,8 @@
 
 // Input Buffer
 struct InputBuffer_t {
-  char* buffer;
-  size_t buffer_len;
+  char*   buffer;
+  size_t  buffer_len;
   ssize_t input_len;
 };
 typedef struct InputBuffer_t InputBuffer;

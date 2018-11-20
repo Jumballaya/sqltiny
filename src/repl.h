@@ -15,7 +15,7 @@ typedef enum CommandResult_t CommandResult;
 
 // REPL
 struct Repl_t {
-  char* prompt;
+  char*        prompt;
   InputBuffer* input;
 };
 typedef struct Repl_t Repl;

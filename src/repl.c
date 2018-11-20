@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "repl.h"
+#include "db.h"
 
 // Print Usage
 void print_usage() {
@@ -69,6 +70,8 @@ CommandResult repl_command(InputBuffer* buf) {
 void repl_run(Repl* repl) {
   print_usage();
 
+  Table* table = db_new_table();
+
   while (1) {
     print_prompt(repl->prompt);
     read_input(repl->input);
@@ -81,6 +84,28 @@ void repl_run(Repl* repl) {
           printf("unrecognized command '%s'.\n", repl->input->buffer);
           continue;
       }
+    }
+
+    Statement stmt;
+    switch (sql_prepare_statement(repl->input, &stmt)) {
+      case (PREPARE_SUCCESS):
+        break;
+      case (PREPARE_SYNTAX_ERROR):
+        printf("syntax error. Could not parse statement:\n");
+        printf("  %s\n", repl->input->buffer);
+        continue;
+      case (PREPARE_UNRECOGNIZED):
+        printf("unrecognized keyword at the start of '%s'.\n", repl->input->buffer);
+        continue;
+    }
+
+    switch (sql_execute_statement(&stmt, table)) {
+      case (EXECUTE_SUCCESS):
+        printf("Executed\n");
+        break;
+      case (EXECUTE_TABLE_FULL):
+        printf("error: Table full.\n");
+        break;
     }
   }
 }
