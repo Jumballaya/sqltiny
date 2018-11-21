@@ -60,19 +60,26 @@ ExecuteResult sql_execute_insert(Statement* stmt, Table* table) {
     return EXECUTE_TABLE_FULL;
   }
   Row* row_to_insert = &(stmt->row);
+  Cursor* cursor = db_table_end(table);
 
-  db_serialize_row(row_to_insert, db_row_slot(table, table->row_count));
+  db_serialize_row(row_to_insert, db_cursor_value(cursor));
   table->row_count += 1;
+  free(cursor);
   return EXECUTE_SUCCESS;
 }
 
 // Execute Select Statement
 ExecuteResult sql_execute_select(Statement* stmt, Table* table) {
+  Cursor* cursor = db_table_start(table);
   Row row;
-  for (uint32_t i = 0; i < table->row_count; i++) {
-    db_deserialize_row(db_row_slot(table, i), &row);
+
+  while(!(cursor->end)) {
+    db_deserialize_row(db_cursor_value(cursor), &row);
     db_print_row(&row);
+    db_cursor_advance(cursor);
   }
+
+  free(cursor);
   return EXECUTE_SUCCESS;
 }
 

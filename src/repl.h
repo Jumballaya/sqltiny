@@ -5,6 +5,7 @@
 #define REPL_H
 
 #include "sql.h"
+#include "cli.h"
 
 // Commands
 enum CommandResult_t {
@@ -15,13 +16,14 @@ typedef enum CommandResult_t CommandResult;
 
 // REPL
 struct Repl_t {
+  CLI*         cli;
   char*        prompt;
   InputBuffer* input;
 };
 typedef struct Repl_t Repl;
 
 // Create new initialized REPL
-Repl* repl_new(char* prompt);
+Repl* repl_new(char* prompt, CLI* cli);
 
 // Run the repl
 void repl_run(Repl* repl);

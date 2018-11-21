@@ -5,6 +5,7 @@
 #define DB_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 // Database Types Sizes
 #define COL_VARCHAR_SIZE 255
@@ -64,8 +65,22 @@ struct Table_t {
 };
 typedef struct Table_t Table;
 
-Table* db_new_table();
-void* db_row_slot(Table* table, uint32_t row_count);
+Table* db_open(const char* filename);
+void db_close(Table* table);
+
+// Cursor
+struct Cursor_t {
+  Table* table;
+  uint32_t row_num;
+  bool end; // Indicates a position 1 past the last element
+};
+typedef struct Cursor_t Cursor;
+
+void* db_cursor_value(Cursor* cursor);
+Cursor* db_table_start(Table* table);
+Cursor* db_table_end(Table* table);
+void db_cursor_advance(Cursor* cursor);
+
 
 
 // Database

@@ -23,8 +23,9 @@ void print_commands() {
 }
 
 // Creates a new Repl
-Repl* repl_new(char* prompt) {
+Repl* repl_new(char* prompt, CLI* cli) {
   Repl* repl = malloc(sizeof(Repl));
+  repl->cli = cli;
   repl->prompt = prompt;
   repl->input = new_input_buffer();
 
@@ -51,8 +52,9 @@ void read_input(InputBuffer* buf) {
 }
 
 // Runs a Repl Command
-CommandResult repl_command(InputBuffer* buf) {
+CommandResult repl_command(InputBuffer* buf, Table* table) {
   if (strcmp(buf->buffer, ".exit") == 0) {
+    db_close(table);
     exit(EXIT_SUCCESS);
   } else if (strcmp(buf->buffer, ".help") == 0) {
     /*print_usage();*/
@@ -70,14 +72,14 @@ CommandResult repl_command(InputBuffer* buf) {
 void repl_run(Repl* repl) {
   /*print_usage();*/
 
-  Table* table = db_new_table();
+  Table* table = db_open(repl->cli->file);
 
   while (1) {
     print_prompt(repl->prompt);
     read_input(repl->input);
 
     if (repl->input->buffer[0] == '.') {
-      switch (repl_command(repl->input)) {
+      switch (repl_command(repl->input, table)) {
         case (COMMAND_SUCCESS):
           continue;
         case (COMMAND_UNRECOGNIZED):
