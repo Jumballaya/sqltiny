@@ -21,8 +21,13 @@ endif
 
 # Sources
 DIR_SRC = src/
+
 DIR_BUILD = build/
+DIR_BUILD_OBJECTS = $(DIR_BUILD)objects/
+DIR_BUILD_TESTS = $(DIR_BUILD)tests/
+
 DIR_BIN = bin/
+
 DIR_TESTS = tests/
 DIR_TESTS_RUBY = $(DIR_TESTS)e2e/
 DIR_TESTS_C = $(DIR_TESTS)unit/
@@ -42,7 +47,7 @@ ENTRY = main.c
 SOURCES 			= $(wildcard $(DIR_SRC)*.c)
 SOURCES_TEST 	= $(wildcard $(DIR_TESTS_C)Test*.c)
 HEADERS 			= $(wildcard $(DIR_SRC)*h)
-OBJ 					= $(patsubst $(DIR_SRC)%,$(DIR_BUILD)%,$(SOURCES:.c=.o))
+OBJ 					= $(patsubst $(DIR_SRC)%,$(DIR_BUILD_OBJECTS)%,$(SOURCES:.c=.o))
 
 # Create binary
 $(DIR_BIN)$(BIN_NAME): $(OBJ)
@@ -50,24 +55,34 @@ $(DIR_BIN)$(BIN_NAME): $(OBJ)
 	$(CC) $(FLAGS) -o $@ $(ENTRY) $^
 
 # Create the build files
-$(DIR_BUILD)%.o: $(DIR_SRC)%.c $(HEADERS)
-	$(MKDIR) $(DIR_BUILD)
+$(DIR_BUILD_OBJECTS)%.o: $(DIR_SRC)%.c $(HEADERS) $(DIR_BUILD_OBJECTS)
+	$(MKDIR) $(DIR_BUILD_OBJECTS)
 	$(CC) -c -o $@ $< $(FLAGS) $(INC)
+
+$(DIR_BUILD_OBJECTS):
+	$(MKDIR) $(DIR_BUILD_OBJECTS)
+
+$(DIR_BUILD_TESTS):
+	$(MKDIR) $(DIR_BUILD_TESTS)
+
+$(DIR_BUILD):
+	$(MKDIR) $(DIR_BUILD)
 
 # Clean
 clean:
-	$(CLEANUP) $(DIR_BUILD)
 	$(CLEANUP) $(DIR_BIN)
+	$(CLEANUP) $(DIR_BUILD)
 
 # Build C Unit tests
 build-tests: $(SOURCES_TEST)
+	$(MKDIR) $(DIR_BUILD_TESTS)
 	for test in $(basename $(notdir $(SOURCES_TEST))) ; do \
 		echo $$test ; \
-		$(CC) $(FLAGS) -o $(DIR_BIN)$$test $(DIR_TESTS_C)$$test.c $(OBJ) -I./src ; \
+		$(CC) $(FLAGS) -o $(DIR_BUILD_TESTS)$$test $(DIR_TESTS_C)$$test.c $(OBJ) -I./src ; \
 	done;
 
 # Run tests
-test: $(wildcard $(DIR_BIN)Test*)
+test: $(wildcard $(DIR_BUILD_TESTS)Test*)
 	@make build-tests
 	for t in $^ ; do \
 		$$t ; \

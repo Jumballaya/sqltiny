@@ -23,6 +23,9 @@ char* TestReplDefaults() {
 }
 
 int main(void) {
+  printf("\n\n\n\n\n\n\n\n\n");
+  printf("------- Test: REPL -------\n");
+  printf("\n\n\n\n\n\n\n\n\n");
   char* errors[2];
   int count = 0;
 
@@ -32,6 +35,10 @@ int main(void) {
 
   for (int i = 0; i < count; i++) {
     fail("REPL tests", errors[i]);
+  }
+
+  if (count == 0) {
+    printf("     1 Tests Passed!\n\n\n\n");
   }
 
   return count == 0 ? 0 : 1;

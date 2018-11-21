@@ -8,8 +8,8 @@
 
 // Database Types Sizes
 #define COL_VARCHAR_SIZE 255
-#define COL_INT_SIZE 4
-#define COL_ID_SIZE 8
+#define COL_INT_SIZE 32
+#define COL_ID_SIZE 16
 
 // Table
 #define TABLE_MAX_PAGES 100
@@ -45,9 +45,17 @@ void db_serialize_row(Row* src, void* dest);
 void db_deserialize_row(void* src, Row* dest);
 void db_print_row();
 
+// Pager
+struct Pager_t {
+  int file_descriptor;
+  uint32_t file_len;
+  void* pages[TABLE_MAX_PAGES];
+};
+typedef struct Pager_t Pager;
+
 // Table
 struct Table_t {
-  void*    pages[TABLE_MAX_PAGES];
+  Pager*   pager;
   uint32_t max_rows;
   uint32_t row_count;
   uint32_t row_size;

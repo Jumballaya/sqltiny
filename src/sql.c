@@ -6,16 +6,43 @@
 
 #include "sql.h"
 
+PrepareResult sql_prepare_insert(InputBuffer* buf, Statement* stmt) {
+  stmt->type = STATEMENT_INSERT;
+
+  strtok(buf->buffer, " ");
+  char* id_str = strtok(NULL, " ");
+  char* username = strtok(NULL, " ");
+  char* email = strtok(NULL, " ");
+
+  if (id_str == NULL || username == NULL || email == NULL) {
+    return PREPARE_SYNTAX_ERROR;
+  }
+
+  int id = atoi(id_str);
+  if (id < 0) {
+    return PREPARE_NEGATIVE_ID;
+  }
+
+  if (strlen(username) > COL_VARCHAR_SIZE) {
+    return PREPARE_STRING_TOO_LONG;
+  }
+
+  if (strlen(email) > COL_VARCHAR_SIZE) {
+    return PREPARE_STRING_TOO_LONG;
+  }
+
+  stmt->row.id = id;
+  strcpy(stmt->row.username, username);
+  strcpy(stmt->row.email, email);
+
+  return PREPARE_SUCCESS;
+}
+
 // Prepares the SQL statement from the buffer
 PrepareResult sql_prepare_statement(InputBuffer* buf, Statement* stmt) {
   // INSERT statement
   if (strncmp(buf->buffer, "insert", 6) == 0) {
-    stmt->type = STATEMENT_INSERT;
-    int args_assigned = sscanf(buf->buffer, "insert %d %s %s", &(stmt->row.id), stmt->row.username, stmt->row.email);
-    if (args_assigned < 3) {
-      return PREPARE_SYNTAX_ERROR;
-    }
-    return PREPARE_SUCCESS;
+    return sql_prepare_insert(buf, stmt);
   }
 
   // SELECT statement

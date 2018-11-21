@@ -69,6 +69,9 @@ char* TestCLIDefaults() {
 }
 
 int main(void) {
+  printf("\n\n\n\n\n\n\n\n\n");
+  printf("------- Test: CLI -------\n");
+  printf("\n\n\n\n\n\n\n\n\n");
   char* errors[2];
   int count = 0;
 
@@ -80,6 +83,10 @@ int main(void) {
 
   for (int i = 0; i < count; i++) {
     fail("CLI tests", errors[i]);
+  }
+
+  if (count == 0) {
+    printf("     2 Tests Passed!\n\n\n\n");
   }
 
   return count == 0 ? 0 : 1;

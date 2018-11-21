@@ -90,6 +90,12 @@ void repl_run(Repl* repl) {
     switch (sql_prepare_statement(repl->input, &stmt)) {
       case (PREPARE_SUCCESS):
         break;
+      case (PREPARE_NEGATIVE_ID):
+        printf("error: ID must be positive\n");
+        continue;
+      case (PREPARE_STRING_TOO_LONG):
+        printf("error: string is too long\n");
+        continue;
       case (PREPARE_SYNTAX_ERROR):
         printf("syntax error. Could not parse statement:\n");
         printf("  %s\n", repl->input->buffer);
