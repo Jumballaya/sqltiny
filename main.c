@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*#include "cli.h"*/
 #include "src/repl.h"
 
 int main(int argc, char** argv) {

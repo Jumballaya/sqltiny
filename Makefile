@@ -83,6 +83,7 @@ build-tests: $(SOURCES_TEST)
 
 # Run tests
 test: $(wildcard $(DIR_BUILD_TESTS)Test*)
+	@make
 	@make build-tests
 	for t in $^ ; do \
 		$$t ; \
