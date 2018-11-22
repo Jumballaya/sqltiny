@@ -70,7 +70,7 @@ const uint32_t LEAF_NODE_MAX_CELLS = (PAGE_SIZE - ((sizeof(uint8_t) * 4) + sizeo
 // Leaf Nodes
 
 uint32_t leaf_node_num_cells(void* node) {
-  return (char *)node + LEAF_NODE_NUM_CELLS_OFFSET;
+  return node + LEAF_NODE_NUM_CELLS_OFFSET;
 };
 
 
