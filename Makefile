@@ -47,6 +47,7 @@ ENTRY = main.c
 SOURCES 			= $(wildcard $(DIR_SRC)*.c)
 SOURCES_TEST 	= $(wildcard $(DIR_TESTS_C)Test*.c)
 HEADERS 			= $(wildcard $(DIR_SRC)*h)
+HEADERS_TEST  = $(wildcard $(DIR_TESTS)*h)
 OBJ 					= $(patsubst $(DIR_SRC)%,$(DIR_BUILD_OBJECTS)%,$(SOURCES:.c=.o))
 
 # Create binary
@@ -74,7 +75,7 @@ clean:
 	$(CLEANUP) $(DIR_BUILD)
 
 # Build C Unit tests
-build-tests: $(SOURCES_TEST)
+build-tests: $(SOURCES_TEST) $(HEADERS_TEST)
 	$(MKDIR) $(DIR_BUILD_TESTS)
 	for test in $(basename $(notdir $(SOURCES_TEST))) ; do \
 		echo $$test ; \

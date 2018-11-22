@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "unit_test.h"
+
 #include "cli.h"
 
 // Create test CLI
