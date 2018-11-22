@@ -3,10 +3,14 @@
  */
 
 // TEST macro
-#define TEST(condition) \
+#define TEST(condition, msg) \
   do { \
     if(!(condition)) { \
-      fprintf(stderr, "Test failed\n"); \
-      exit(EXIT_FAILURE); \
+      fprintf(stderr, "----------------------------------------\n"); \
+      fprintf(stderr, "\n"); \
+      fprintf(stderr, "  Test failed: \n    %s\n", msg); \
+      fprintf(stderr, "\n"); \
+      fprintf(stderr, "----------------------------------------\n"); \
+      return 0; \
     } \
   } while(0)
