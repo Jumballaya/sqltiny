@@ -4,6 +4,8 @@
 #ifndef CLI_H
 #define CLI_H
 
+#include "util.h"
+
 #define CLI_NAME      "sqltiny"
 #define CLI_VERSION   "0.0.1"
 

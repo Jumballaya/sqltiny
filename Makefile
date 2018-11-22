@@ -35,7 +35,7 @@ DIR_TESTS_C = $(DIR_TESTS)unit/
 # Compiler settings
 CC = cc
 FLAGS = -Wall
-INC = -I.
+INC = -I./src
 TEST_INC = -I./src
 
 # General info

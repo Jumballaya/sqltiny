@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "util.h"
 #include "cli.h"
 
 // Print Help Message

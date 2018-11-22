@@ -1,9 +1,12 @@
 /**
  * Btree
  */
-#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "btree.h"
-#include "sql.h"
+#include "db.h"
+
 
 struct HeaderCommon_t {
   uint32_t type_size;
@@ -34,43 +37,47 @@ struct BodyLeaf_t {
 typedef struct BodyLeaf_t BodyLeaf;
 
 
-/**
- * COMMON NODE HEADER LAYOUT
- */
-const uint32_t NODE_TYPE_SIZE = sizeof(uint8_t);
-const uint32_t NODE_TYPE_OFFSET = 0;
-const uint32_t I_ROOT_SIZE = sizeof(uint8_t);
-const uint32_t I_ROOT_OFFSET = sizeof(uint8_t); // NODE_TYPE_SIZE
-const uint32_t PARENT_POINTER_SIZE = sizeof(uint32_t);
-const uint32_t PARENT_POINTER_OFFSET = sizeof(uint8_t) * 2; // I_ROOT_OFFSET + I_ROOT_SIZE
-const uint8_t COMMON_NODE_HEADER_SIZE = sizeof(uint8_t) * 4; // NODE_TYPE_SIZE + I_ROOT_SIZE + PARENT_POINTER_SIZE
-
-/**
- * LEAF NODE HEADER LAYOUT
- */
-const uint32_t LEAF_NODE_NUM_CELLS_SIZE = sizeof(uint32_t);
-const uint32_t LEAF_NODE_NUM_CELLS_OFFSET = sizeof(uint8_t) * 4; // COMMON_NODE_HEADER_SIZE
-const uint32_t LEAF_NODE_HEADER_SIZE = (sizeof(uint8_t) * 4) + sizeof(uint32_t); // COMMON_NODE_HEADER_SIZE + LEAF_NODE_NUM_CELLS_SIZE
-
-/**
- * LEAF NODE BODY LAYOUT
- */
-const uint32_t LEAF_NODE_KEY_SIZE = sizeof(uint32_t);
-const uint32_t LEAF_NODE_KEY_OFFSET = 0;
-const uint32_t LEAF_NODE_VALUE_SIZE = COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE; // size of a row
-const uint32_t LEAF_NODE_VALUE_OFFSET = 0 + sizeof(uint32_t); // LEAF_NODE_KEY_OFFSET + LEAF_NODE_KEY_SIZE
-const uint32_t LEAF_NODE_CELL_SIZE = sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE; // LEAF_NODE_KEY_SIZE + LEAF_NODE_VALUE_SIZE
-const uint32_t LEAF_NODE_SPACE_FOR_CELLS = PAGE_SIZE - ((sizeof(uint8_t) * 4) + sizeof(uint32_t)); // LEAF_NODE_HEADER_SIZE
-// LEAF_NODE_SPACE_FOR_CELLS / LEAF_NODE_CELL_SIZE
-const uint32_t LEAF_NODE_MAX_CELLS = (PAGE_SIZE - ((sizeof(uint8_t) * 4) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE);
-
-
-
-
 // Leaf Nodes
 
-uint32_t leaf_node_num_cells(void* node) {
-  return node + LEAF_NODE_NUM_CELLS_OFFSET;
+uint32_t* btree_leaf_node_num_cells(void* node) {
+  return (char *)node + LEAF_NODE_NUM_CELLS_OFFSET;
 };
 
+void* btree_leaf_node_cell(void* node, uint32_t cell_num) {
+  return (char *)node + LEAF_NODE_HEADER_SIZE + cell_num * LEAF_NODE_CELL_SIZE;
+};
+
+uint32_t* btree_leaf_node_key(void* node, uint32_t cell_num) {
+  return btree_leaf_node_cell(node, cell_num);
+};
+
+void* btree_leaf_node_value(void* node, uint32_t cell_num) {
+  return btree_leaf_node_cell(node, cell_num) + LEAF_NODE_KEY_SIZE;
+};
+
+void btree_initialize_leaf_node(void* node) {
+  *btree_leaf_node_num_cells(node) = 0;
+};
+
+void btree_leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
+  void* node = db_get_page(cursor->table->pager, cursor->page_num);
+
+  uint32_t num_cells = *btree_leaf_node_num_cells(node);
+  if (num_cells >= LEAF_NODE_MAX_CELLS) {
+    // Node full
+    printf("error: need to implement splitting a leaf node.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (cursor->cell_num < num_cells) {
+    // Make room for the new cell
+    for (uint32_t i = num_cells; i > cursor->cell_num; i--) {
+      memcpy(btree_leaf_node_cell(node, i), btree_leaf_node_cell(node, i - 1), LEAF_NODE_CELL_SIZE);
+    }
+  }
+
+  *(btree_leaf_node_num_cells(node)) += 1;
+  *(btree_leaf_node_key(node, cursor->cell_num)) = key;
+  db_serialize_row(value, btree_leaf_node_value(node, cursor->cell_num));
+};
 

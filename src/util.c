@@ -34,3 +34,11 @@ void itoa(int n, char s[]) {
   s[i] = '\0';
   reverse(s);
 };
+
+// Chops a substring from a string
+char* string_chop(char* base, char* sub) {
+  char* cpy;
+  cpy = base;
+  cpy += strlen(sub);
+  return cpy;
+};

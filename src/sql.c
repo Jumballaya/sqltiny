@@ -56,14 +56,15 @@ PrepareResult sql_prepare_statement(InputBuffer* buf, Statement* stmt) {
 
 // Execute Insert Statement
 ExecuteResult sql_execute_insert(Statement* stmt, Table* table) {
-  if (table->row_count >= table->max_rows) {
+  void* node = db_get_page(table->pager, table->root_page_num);
+  if ((*btree_leaf_node_num_cells(node) >= LEAF_NODE_MAX_CELLS)) {
     return EXECUTE_TABLE_FULL;
   }
   Row* row_to_insert = &(stmt->row);
   Cursor* cursor = db_table_end(table);
 
-  db_serialize_row(row_to_insert, db_cursor_value(cursor));
-  table->row_count += 1;
+  btree_leaf_node_insert(cursor, row_to_insert->id, row_to_insert);
+
   free(cursor);
   return EXECUTE_SUCCESS;
 }

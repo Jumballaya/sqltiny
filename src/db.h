@@ -16,9 +16,6 @@
 #define TABLE_MAX_PAGES 100
 #define PAGE_SIZE 4096
 
-// Macros
-#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
-
 // Column Type
 struct ColType_t {
   char* name;
@@ -50,18 +47,19 @@ void db_print_row();
 struct Pager_t {
   int file_descriptor;
   uint32_t file_len;
+  uint32_t num_pages;
   void* pages[TABLE_MAX_PAGES];
 };
 typedef struct Pager_t Pager;
 
+void* db_get_page(Pager* pager, uint32_t page_count);
+
 // Table
 struct Table_t {
   Pager*   pager;
-  uint32_t max_rows;
+  uint32_t root_page_num;
   uint32_t row_count;
   uint32_t row_size;
-  uint32_t rows_per_page;
-  //Row** rows;
 };
 typedef struct Table_t Table;
 
@@ -71,7 +69,8 @@ void db_close(Table* table);
 // Cursor
 struct Cursor_t {
   Table* table;
-  uint32_t row_num;
+  uint32_t page_num;
+  uint32_t cell_num;
   bool end; // Indicates a position 1 past the last element
 };
 typedef struct Cursor_t Cursor;

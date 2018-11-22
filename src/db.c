@@ -10,6 +10,7 @@
 
 
 #include "db.h"
+#include "btree.h"
 
 const uint32_t ID_OFFSET = 0;
 
@@ -39,7 +40,7 @@ void db_print_row(Row* row) {
 }
 
 // Gets page without faults
-void* get_page(Pager* pager, uint32_t page_count) {
+void* db_get_page(Pager* pager, uint32_t page_count) {
   if (page_count > TABLE_MAX_PAGES) {
     printf("error: can't fetch page number out of bounds. %d > %d\n", page_count, TABLE_MAX_PAGES);
     exit(EXIT_FAILURE);
@@ -65,13 +66,17 @@ void* get_page(Pager* pager, uint32_t page_count) {
     }
 
     pager->pages[page_count] = page;
+
+    if (page_count >= pager->num_pages) {
+      pager->num_pages = page_count + 1;
+    };
   }
 
   return pager->pages[page_count];
 };
 
 // Flush the page cache to the disk
-void pager_flush(Pager* pager, uint32_t page_count, uint32_t size) {
+void pager_flush(Pager* pager, uint32_t page_count) {
   if (pager->pages[page_count] == NULL) {
     printf("error: attempted to flush null page\n");
     exit(EXIT_FAILURE);
@@ -83,7 +88,7 @@ void pager_flush(Pager* pager, uint32_t page_count, uint32_t size) {
     exit(EXIT_FAILURE);
   }
 
-  ssize_t bytes = write(pager->file_descriptor, pager->pages[page_count], size);
+  ssize_t bytes = write(pager->file_descriptor, pager->pages[page_count], PAGE_SIZE);
 
   if (bytes == -1) {
     printf("error: problem writing: %d\n", errno);
@@ -93,25 +98,13 @@ void pager_flush(Pager* pager, uint32_t page_count, uint32_t size) {
 
 // Close database connection
 void db_close(Table* table) {
-  uint32_t num_full_pages = table->row_count / table->rows_per_page;
-
-  for (uint32_t i = 0; i < num_full_pages; i++) {
+  for (uint32_t i = 0; i < table->pager->num_pages; i++) {
     if (table->pager->pages[i] == NULL) {
       continue;
     }
-    pager_flush(table->pager, i, PAGE_SIZE);
+    pager_flush(table->pager, i);
     free(table->pager->pages[i]);
     table->pager->pages[i] = NULL;
-  }
-
-  uint32_t additional_rows = table->row_count % table->rows_per_page;
-  if (additional_rows > 0) {
-    uint32_t page_num = num_full_pages;
-    if (table->pager->pages[page_num] != NULL) {
-      pager_flush(table->pager, page_num, additional_rows * table->row_size);
-      free(table->pager->pages[page_num]);
-      table->pager->pages[page_num] = NULL;
-    }
   }
 
   int result = close(table->pager->file_descriptor);
@@ -144,6 +137,12 @@ Pager* pager_open(const char* filename) {
   Pager* pager = malloc(sizeof(Pager));
   pager->file_descriptor = fd;
   pager->file_len = file_len;
+  pager->num_pages = (file_len / PAGE_SIZE);
+
+  if (file_len % PAGE_SIZE != 0) {
+    printf("db file is not a whole number of pages. corrupt file.\n");
+    exit(EXIT_FAILURE);
+  }
 
   for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
     pager->pages[i] = NULL;
@@ -156,14 +155,16 @@ Pager* pager_open(const char* filename) {
 Table* db_open(const char* filename) {
   Pager* pager = pager_open(filename);
   uint32_t row_size = COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE;
-  uint32_t num_rows = pager->file_len / row_size;
 
   Table* table = malloc(sizeof(Table));
-  table->row_count = num_rows;
-  table->row_size = row_size;
-  table->rows_per_page = PAGE_SIZE / table->row_size;
-  table->max_rows = table->rows_per_page * TABLE_MAX_PAGES;
   table->pager = pager;
+  table->row_size = row_size;
+
+  if (pager->num_pages == 0) {
+    // New DB file, init page 0 as leaf node
+    void* root_node = db_get_page(pager, 0);
+    btree_initialize_leaf_node(root_node);
+  }
 
   return table;
 };
@@ -172,8 +173,13 @@ Table* db_open(const char* filename) {
 Cursor* db_table_start(Table* table) {
   Cursor* cursor = malloc(sizeof(Cursor));
   cursor->table = table;
-  cursor->row_num = 0;
-  cursor->end = (table->row_count == 0);
+  cursor->page_num = table->root_page_num;
+  cursor->cell_num = 0;
+
+  void* root_node = db_get_page(table->pager, table->root_page_num);
+  uint32_t num_cells = *btree_leaf_node_num_cells(root_node);
+  cursor->end = (num_cells == 0);
+
   return cursor;
 };
 
@@ -181,25 +187,30 @@ Cursor* db_table_start(Table* table) {
 Cursor* db_table_end(Table* table) {
   Cursor* cursor = malloc(sizeof(Cursor));
   cursor->table = table;
-  cursor->row_num = table->row_count;
+
+  cursor->page_num = table->root_page_num;
+  void* root_node = db_get_page(table->pager, table->root_page_num);
+  uint32_t num_cells = *btree_leaf_node_num_cells(root_node);
+  cursor->cell_num = num_cells;
+
   cursor->end = true;
   return cursor;
 };
 
 // Get the memory position for the cursor
 void* db_cursor_value(Cursor* cursor) {
-  uint32_t row_num = cursor->row_num;
-  uint32_t page_num = row_num / cursor->table->rows_per_page;
-  void* page = get_page(cursor->table->pager, page_num);
-  uint32_t row_offset = row_num % cursor->table->rows_per_page;
-  uint32_t byte_offset = row_offset * cursor->table->row_size;
-  return page + byte_offset;
+  uint32_t page_num = cursor->page_num;
+  void* page = db_get_page(cursor->table->pager, page_num);
+  return btree_leaf_node_value(page, cursor->cell_num);
 };
 
 // Advance the cursor
 void db_cursor_advance(Cursor* cursor) {
-  cursor->row_num += 1;
-  if (cursor->row_num >= cursor->table->row_count) {
+  uint32_t page_num = cursor->page_num;
+  void* node = db_get_page(cursor->table->pager, page_num);
+  cursor->cell_num += 1;
+
+  if (cursor->cell_num >= (*btree_leaf_node_num_cells(node))) {
     cursor->end = true;
   }
 }

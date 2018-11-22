@@ -4,8 +4,9 @@
 #ifndef REPL_H
 #define REPL_H
 
-#include "sql.h"
 #include "cli.h"
+#include "sql.h"
+#include "db.h"
 
 // Commands
 enum CommandResult_t {
