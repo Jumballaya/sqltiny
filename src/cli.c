@@ -9,13 +9,19 @@
 
 // Print Help Message
 void cli_print_usage() {
-  printf("Usage: %s [OPTIONS] FILENAME\n", CLI_NAME);
+  printf("Usage: %s [OPTIONS] FILENAME\n", APP_NAME);
   printf("FILENAME is the name of a SQLTiny database. A new database is\n");
   printf("created if the file does not already exist. Defaults to database.db\n");
   printf("OPTIONS include:\n");
   printf("   -h, --host           hostname of the tinysql server, defaults to localhost\n");
   printf("   -p, --port           port of the tinysql server, defaults to 3001\n");
   printf("   -help, --help        this help menu\n");
+  printf("   -v, --version        print current version\n");
+}
+
+// Print version message
+void cli_print_version() {
+  printf("%s version %s\n", APP_NAME, APP_VERSION);
 }
 
 // Parses the raw argv array into the cli options
@@ -50,6 +56,13 @@ void cli_parse_raw(CLI* cli) {
       exit(0);
     }
 
+    // Version
+    if (strcmp(tok, "-v") == 0 || strcmp(tok, "--version") == 0) {
+      i++;
+      cli_print_version();
+      exit(0);
+    }
+
     // The other option is the FILENAME
     if (i != 0) {
       cli->file = cli->raw[i];
@@ -61,7 +74,7 @@ void cli_parse_raw(CLI* cli) {
 CLI* cli_new(int argc, char** raw) {
   CLI* cli = malloc(sizeof(CLI));
 
-  cli->version = CLI_VERSION;
+  cli->version = APP_VERSION;
   cli->raw = raw;
   cli->argc = argc;
 

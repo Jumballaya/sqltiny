@@ -38,7 +38,7 @@ void* TestCLIDefaults() {
 
 int main(void) {
   printf("\n\n\n");
-  printf("------- Test: CLI -------\n");
+  MESSAGE("------- Test: CLI -------\n", "");
   printf("\n");
 
   TestCLIInitialization();

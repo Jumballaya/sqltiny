@@ -30,7 +30,7 @@ void print_leaf_node(void* node) {
 
 // Print Usage
 void print_usage() {
-  printf("SQLTiny version 0.0.1\n");
+  printf("SQLTiny version %s\n", APP_VERSION);
   printf("Enter \".help\" for usage hints.\n");
   printf("Use \".open FILENAME\" to reopen on another file\n");
 }
@@ -147,7 +147,7 @@ void repl_run(Repl* repl) {
         printf("error: duplicate key\n");
         break;
       case (EXECUTE_TABLE_FULL):
-        printf("error: Table full.\n");
+        printf("error: table full\n");
         break;
     }
   }

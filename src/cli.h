@@ -6,8 +6,8 @@
 
 #include "util.h"
 
-#define CLI_NAME      "sqltiny"
-#define CLI_VERSION   "0.0.1"
+#define APP_NAME      "sqltiny"
+#define APP_VERSION   "0.0.1"
 
 struct cli_t {
   int     argc;

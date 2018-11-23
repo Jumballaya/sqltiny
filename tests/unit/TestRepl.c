@@ -13,7 +13,7 @@ void* TestReplDefaults() {
 
 int main(void) {
   printf("\n\n\n");
-  printf("------- Test: REPL -------\n");
+  MESSAGE("------- Test: REPL -------\n", "");
   printf("\n");
 
   TestReplDefaults();
