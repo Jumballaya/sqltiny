@@ -43,7 +43,7 @@ DIR_INC_TESTS = $(DIR_TESTS)$(DIR_INC)
 CC = gcc
 FLAGS = -Wall
 INC = -I $(DIR_INC)
-TEST_INC = -I $(DIR_INC) $(DIR_INC_TESTS)
+INC_TESTS = -I $(DIR_INC) -I $(DIR_INC_TESTS)
 
 # General info
 BIN_NAME = sqltiny
@@ -53,9 +53,9 @@ TARGET_EXTENSION = out
 ENTRY = main.c
 
 SOURCES 			= $(wildcard $(DIR_SRC)*.c)
-SOURCES_TEST 	= $(wildcard $(DIR_TESTS_C)Test*.c)
+SOURCES_TESTS 	= $(wildcard $(DIR_TESTS_C)Test*.c)
 HEADERS 			= $(wildcard $(DIR_SRC)*h)
-HEADERS_TEST  = $(wildcard $(DIR_TESTS)*h)
+HEADERS_TESTS  = $(wildcard $(DIR_TESTS)*h)
 OBJ 					= $(patsubst $(DIR_SRC)%,$(DIR_BUILD_OBJECTS)%,$(SOURCES:.c=.o))
 
 # Create binary
@@ -83,11 +83,11 @@ clean:
 	$(CLEANUP) $(DIR_BUILD)
 
 # Build C Unit tests
-build-tests: $(SOURCES_TEST) $(HEADERS_TEST)
+build-tests: $(SOURCES_TESTS) $(HEADERS_TESTS)
 	$(MKDIR) $(DIR_BUILD_TESTS)
-	for test in $(basename $(notdir $(SOURCES_TEST))) ; do \
+	for test in $(basename $(notdir $(SOURCES_TESTS))) ; do \
 		echo $$test ; \
-		$(CC) $(FLAGS) -o $(DIR_BUILD_TESTS)$$test $(DIR_TESTS_C)$$test.c $(OBJ) -I./src ; \
+		$(CC) $(FLAGS) -o $(DIR_BUILD_TESTS)$$test $(DIR_TESTS_C)$$test.c $(OBJ) $(INC_TESTS) ; \
 	done;
 
 # Run tests
