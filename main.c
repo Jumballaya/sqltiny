@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "src/repl.h"
+#include "include/repl.h"
 
 int main(int argc, char** argv) {
   CLI* cli = cli_new(argc, argv);

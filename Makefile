@@ -1,23 +1,24 @@
-ifeq ($(OS),Windows_NT)
-  ifeq ($(shell uname -s),) # not in a bash-like shell
-	CLEANUP = del /F /Q
-	MKDIR = mkdir
-	CP = copy
-	INSTALL_DIR = C:\\windows\\system32\\
-  else # in a bash-like shell, like msys
-	CLEANUP = rm -rf
-	MKDIR = mkdir -p
-	CP = cp
-	INSTALL_DIR = /usr/bin/
-  endif
-	TARGET_EXTENSION=.exe
-else
-	CLEANUP = rm -rf
-	MKDIR = mkdir -p
-	TARGET_EXTENSION=out
-	CP = cp
-	INSTALL_DIR = /usr/bin/
-endif
+#
+# TinySQL Build System
+#
+# Commands
+# 	* build - (defaults to make) build the TinySQL CLI binary
+# 	* clean - clean the build and bin folders
+# 	* test  - build the test binaries, run them and then run the rspec end-to-end tests (runs make build)
+#
+#	Variables
+#		* Utilities
+#		* Directories
+#		* Compiler settings
+#		* General Information
+#		* Files/Dependencies
+#
+
+# Utilities
+CLEANUP = rm -rf
+MKDIR = mkdir -p
+CP = cp
+
 
 # Sources
 DIR_SRC = src/
@@ -26,20 +27,27 @@ DIR_BUILD = build/
 DIR_BUILD_OBJECTS = $(DIR_BUILD)objects/
 DIR_BUILD_TESTS = $(DIR_BUILD)tests/
 
+DIR_INSTALL = /usr/bin/
+
 DIR_BIN = bin/
 
 DIR_TESTS = tests/
 DIR_TESTS_RUBY = $(DIR_TESTS)e2e/
 DIR_TESTS_C = $(DIR_TESTS)unit/
 
+DIR_INC = include/
+DIR_INC_TESTS = $(DIR_TESTS)$(DIR_INC)
+
+
 # Compiler settings
-CC = cc
+CC = gcc
 FLAGS = -Wall
-INC = -I./src
-TEST_INC = -I./src
+INC = -I $(DIR_INC)
+TEST_INC = -I $(DIR_INC) $(DIR_INC_TESTS)
 
 # General info
 BIN_NAME = sqltiny
+TARGET_EXTENSION = out
 
 # Files
 ENTRY = main.c
@@ -93,7 +101,7 @@ test: $(wildcard $(DIR_BUILD_TESTS)Test*)
 
 # Install the binary
 install:
-	$(CP) $(DIR_BIN)$(BIN_NAME) $(INSTALL_DIR)$(BIN_NAME)
+	$(CP) $(DIR_BIN)$(BIN_NAME) $(DIR_INSTALL)$(BIN_NAME)
 
 .PHONY: build
 .PHONY: clean
