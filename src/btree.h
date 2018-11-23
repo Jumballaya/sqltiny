@@ -16,6 +16,9 @@ enum NodeType_t {
 };
 typedef enum NodeType_t NodeType;
 
+NodeType btree_get_node_type(void* node);
+void btree_set_node_type(void* node, NodeType type);
+
 uint32_t* btree_leaf_node_num_cells(void* node);
 void* btree_leaf_node_cell(void* node, uint32_t cell_num);
 uint32_t* btree_leaf_node_key(void* node, uint32_t cell_num);
@@ -23,6 +26,7 @@ void* btree_leaf_node_value(void* node, uint32_t cell_num);
 void btree_initialize_leaf_node(void* node);
 
 void btree_leaf_node_insert(Cursor* cursor, uint32_t key, Row* value);
+Cursor* btree_leaf_node_find(Table* table, uint32_t page_num, uint32_t key);
 
 /**
  * COMMON NODE HEADER LAYOUT

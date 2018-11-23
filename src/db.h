@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 // Database Types Sizes
-#define COL_VARCHAR_SIZE 255
+#define COL_VARCHAR_SIZE 256
 #define COL_INT_SIZE 32
 #define COL_ID_SIZE 16
 
@@ -77,7 +77,7 @@ typedef struct Cursor_t Cursor;
 
 void* db_cursor_value(Cursor* cursor);
 Cursor* db_table_start(Table* table);
-Cursor* db_table_end(Table* table);
+Cursor* db_table_find(Table* table, uint32_t key);
 void db_cursor_advance(Cursor* cursor);
 
 

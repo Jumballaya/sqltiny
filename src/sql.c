@@ -57,13 +57,23 @@ PrepareResult sql_prepare_statement(InputBuffer* buf, Statement* stmt) {
 // Execute Insert Statement
 ExecuteResult sql_execute_insert(Statement* stmt, Table* table) {
   void* node = db_get_page(table->pager, table->root_page_num);
-  if ((*btree_leaf_node_num_cells(node) >= LEAF_NODE_MAX_CELLS)) {
+  uint32_t num_cells = (*btree_leaf_node_num_cells(node));
+  if (num_cells >= LEAF_NODE_MAX_CELLS) {
     return EXECUTE_TABLE_FULL;
   }
-  Row* row_to_insert = &(stmt->row);
-  Cursor* cursor = db_table_end(table);
 
-  btree_leaf_node_insert(cursor, row_to_insert->id, row_to_insert);
+  Row* row = &(stmt->row);
+  uint32_t key = row->id;
+  Cursor* cursor = db_table_find(table, key);
+
+  if (cursor->cell_num < num_cells) {
+    uint32_t key_at_index = *btree_leaf_node_key(node, cursor->cell_num);
+    if (key_at_index == key) {
+      return EXECUTE_DUPLICATE_KEY;
+    }
+  }
+
+  btree_leaf_node_insert(cursor, row->id, row);
 
   free(cursor);
   return EXECUTE_SUCCESS;

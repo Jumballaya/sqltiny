@@ -143,6 +143,9 @@ void repl_run(Repl* repl) {
       case (EXECUTE_SUCCESS):
         printf("Executed\n");
         break;
+      case (EXECUTE_DUPLICATE_KEY):
+        printf("error: duplicate key\n");
+        break;
       case (EXECUTE_TABLE_FULL):
         printf("error: Table full.\n");
         break;

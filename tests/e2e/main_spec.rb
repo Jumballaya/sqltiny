@@ -120,22 +120,22 @@ describe 'database' do
     ])
   end
 
-  #it 'prints an error message if there is a duplicate id' do
-    #script = [
-      #"insert 1 user1 person1@example.com",
-      #"insert 1 user1 person1@example.com",
-      #"select",
-      #".exit",
-    #]
-    #result = run_script(script)
-    #expect(result).to match_array([
-      #"> Executed",
-      #"> Error: Duplicate key.",
-      #"> (1, user1, person1@example.com)",
-      #"Executed",
-      #"> ",
-    #])
-  #end
+  it 'prints an error message if there is a duplicate id' do
+    script = [
+      "insert 1 user1 person1@example.com",
+      "insert 1 user1 person1@example.com",
+      "select",
+      ".exit",
+    ]
+    result = run_script(script)
+    expect(result).to match_array([
+      "> Executed",
+      "> error: duplicate key",
+      "> (1, user1, person1@example.com)",
+      "Executed",
+      "> ",
+    ])
+  end
 
   it 'allows printing out the structure of a one-node btree' do
     script = [3, 1, 2].map do |i|
@@ -151,9 +151,9 @@ describe 'database' do
       "> Executed",
       "> BTree:",
       "- leaf (size 3)",
-      "  - 0 : 3",
-      "  - 1 : 1",
-      "  - 2 : 2",
+      "  - 0 : 1",
+      "  - 1 : 2",
+      "  - 2 : 3",
       "> "
     ])
   end
@@ -283,11 +283,11 @@ describe 'database' do
     expect(result).to match_array([
       "> Constants:",
       "  COMMON_NODE_HEADER_SIZE: 4",
-      "  LEAF_NODE_CELL_SIZE: 530",
+      "  LEAF_NODE_CELL_SIZE: 532",
       "  LEAF_NODE_HEADER_SIZE: 8",
       "  LEAF_NODE_MAX_CELLS: 7",
       "  LEAF_NODE_SPACE_FOR_CELLS: 4088",
-      "  ROW_SIZE: 526",
+      "  ROW_SIZE: 528",
       "> ",
     ])
   end
