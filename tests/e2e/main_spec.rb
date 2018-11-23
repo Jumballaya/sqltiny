@@ -4,12 +4,12 @@
 #
 describe 'database' do
   before do
-    `rm -rf test.db`
+    `rm -rf build/tests/test.db`
   end
 
   def run_script(commands)
     raw_output = nil
-    IO.popen("./bin/sqltiny test.db", "r+") do |pipe|
+    IO.popen("./bin/sqltiny build/tests/test.db", "r+") do |pipe|
       commands.each do |command|
         begin
           pipe.puts command
@@ -137,26 +137,26 @@ describe 'database' do
     #])
   #end
 
-  #it 'allows printing out the structure of a one-node btree' do
-    #script = [3, 1, 2].map do |i|
-      #"insert #{i} user#{i} person#{i}@example.com"
-    #end
-    #script << ".btree"
-    #script << ".exit"
-    #result = run_script(script)
+  it 'allows printing out the structure of a one-node btree' do
+    script = [3, 1, 2].map do |i|
+      "insert #{i} user#{i} person#{i}@example.com"
+    end
+    script << ".btree"
+    script << ".exit"
+    result = run_script(script)
 
-    #expect(result).to match_array([
-      #"> Executed",
-      #"> Executed",
-      #"> Executed",
-      #"> Tree:",
-      #"- leaf (size 3)",
-      #"  - 1",
-      #"  - 2",
-      #"  - 3",
-      #"> "
-    #])
-  #end
+    expect(result).to match_array([
+      "> Executed",
+      "> Executed",
+      "> Executed",
+      "> BTree:",
+      "- leaf (size 3)",
+      "  - 0 : 3",
+      "  - 1 : 1",
+      "  - 2 : 2",
+      "> "
+    ])
+  end
 
   #it 'allows printing out the structure of a 3-leaf-node btree' do
     #script = (1..14).map do |i|
@@ -273,24 +273,24 @@ describe 'database' do
     #])
   #end
 
-  #it 'prints constants' do
-    #script = [
-      #".constants",
-      #".exit",
-    #]
-    #result = run_script(script)
+  it 'prints constants' do
+    script = [
+      ".constants",
+      ".exit",
+    ]
+    result = run_script(script)
 
-    #expect(result).to match_array([
-      #"> Constants:",
-      #"ROW_SIZE: 293",
-      #"COMMON_NODE_HEADER_SIZE: 6",
-      #"LEAF_NODE_HEADER_SIZE: 14",
-      #"LEAF_NODE_CELL_SIZE: 297",
-      #"LEAF_NODE_SPACE_FOR_CELLS: 4082",
-      #"LEAF_NODE_MAX_CELLS: 13",
-      #"> ",
-    #])
-  #end
+    expect(result).to match_array([
+      "> Constants:",
+      "  COMMON_NODE_HEADER_SIZE: 4",
+      "  LEAF_NODE_CELL_SIZE: 530",
+      "  LEAF_NODE_HEADER_SIZE: 8",
+      "  LEAF_NODE_MAX_CELLS: 7",
+      "  LEAF_NODE_SPACE_FOR_CELLS: 4088",
+      "  ROW_SIZE: 526",
+      "> ",
+    ])
+  end
 
   #it 'prints all rows in a multi-level tree' do
     #script = []

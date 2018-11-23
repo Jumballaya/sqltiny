@@ -21,7 +21,7 @@ void print_constants(Table* t) {
 // Print Btree
 void print_leaf_node(void* node) {
   uint32_t num_cells = *btree_leaf_node_num_cells(node);
-  printf("leaf (size %d)\n", num_cells);
+  printf("- leaf (size %d)\n", num_cells);
   for (uint32_t i = 0; i < num_cells; i++) {
     uint32_t key = *btree_leaf_node_key(node, i);
     printf("  - %d : %d\n", i, key);
@@ -79,11 +79,11 @@ CommandResult repl_command(InputBuffer* buf, Table* table) {
     db_close(table);
     exit(EXIT_SUCCESS);
   } else if (strcmp(buf->buffer, ".constants") == 0) {
-    printf("Constants: \n");
+    printf("Constants:\n");
     print_constants(table);
     return COMMAND_SUCCESS;
   } else if (strcmp(buf->buffer, ".btree") == 0) {
-    printf("Btree:\n");
+    printf("BTree:\n");
     print_leaf_node(db_get_page(table->pager, 0));
     return COMMAND_SUCCESS;
   } else if (strcmp(buf->buffer, ".help") == 0) {
