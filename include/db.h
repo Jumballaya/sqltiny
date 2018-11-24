@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 // Database Types Sizes
-#define COL_VARCHAR_SIZE 256
+#define COL_VARCHAR_SIZE 139
 #define COL_INT_SIZE 32
 #define COL_ID_SIZE 16
 
@@ -33,8 +33,8 @@ typedef struct Col_t Col;
 // Row
 struct Row_t {
   uint32_t  id;
-  char      username[COL_VARCHAR_SIZE + 1];
-  char      email[COL_VARCHAR_SIZE + 1];
+  char      username[33];
+  char      email[256];
   //Col** columns;
 };
 typedef struct Row_t Row;

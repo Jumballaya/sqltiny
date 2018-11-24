@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "repl.h"
+#include "sql.h"
 #include "util.h"
 
 // Adds n amount of spaces as an indent

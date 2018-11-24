@@ -10,7 +10,7 @@
 #include "btree.h"
 
 // Database Types Sizes
-#define COL_VARCHAR_SIZE 256
+#define COL_VARCHAR_SIZE 139
 #define COL_INT_SIZE 32
 #define COL_ID_SIZE 16
 

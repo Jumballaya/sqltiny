@@ -55,14 +55,15 @@ Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key);
 #define I_ROOT_OFFSET (uint32_t) sizeof(uint8_t) // NODE_TYPE_SIZE
 #define PARENT_POINTER_SIZE (uint32_t) (sizeof(uint32_t) * 2)
 #define PARENT_POINTER_OFFSET (uint32_t) (sizeof(uint8_t) * 2) // I_ROOT_OFFSET + I_ROOT_SIZE
-#define COMMON_NODE_HEADER_SIZE (uint8_t) (sizeof(uint8_t) * 4) // NODE_TYPE_SIZE + I_ROOT_SIZE + PARENT_POINTER_SIZE
+#define COMMON_NODE_HEADER_SIZE (uint8_t) (sizeof(uint8_t) * 6) // NODE_TYPE_SIZE + I_ROOT_SIZE + PARENT_POINTER_SIZE
 
 /**
  * LEAF NODE HEADER LAYOUT
  */
 #define LEAF_NODE_NUM_CELLS_SIZE (uint32_t) sizeof(uint32_t)
-#define LEAF_NODE_NUM_CELLS_OFFSET (uint32_t) (sizeof(uint8_t) * 4) // COMMON_NODE_HEADER_SIZE
-#define LEAF_NODE_HEADER_SIZE (uint32_t) ((sizeof(uint8_t) * 4) + sizeof(uint32_t)) // COMMON_NODE_HEADER_SIZE + LEAF_NODE_NUM_CELLS_SIZE
+#define LEAF_NODE_NUM_CELLS_OFFSET (uint32_t) (sizeof(uint8_t) * 6) // COMMON_NODE_HEADER_SIZE
+//#define LEAF_NODE_HEADER_SIZE (uint32_t) ((sizeof(uint8_t) * 3) + sizeof(uint32_t)) // COMMON_NODE_HEADER_SIZE + LEAF_NODE_NUM_CELLS_SIZE
+#define LEAF_NODE_HEADER_SIZE (uint32_t)14
 
 /**
  * LEAF NODE BODY LAYOUT
@@ -72,16 +73,16 @@ Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key);
 #define LEAF_NODE_VALUE_SIZE (uint32_t) (COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE) // size of a row
 #define LEAF_NODE_VALUE_OFFSET (uint32_t) (0 + sizeof(uint32_t)) // LEAF_NODE_KEY_OFFSET + LEAF_NODE_KEY_SIZE
 #define LEAF_NODE_CELL_SIZE (uint32_t) (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE) // LEAF_NODE_KEY_SIZE + LEAF_NODE_VALUE_SIZE
-#define LEAF_NODE_SPACE_FOR_CELLS (uint32_t) (PAGE_SIZE - ((sizeof(uint8_t) * 4) + sizeof(uint32_t))) // LEAF_NODE_HEADER_SIZE
+#define LEAF_NODE_SPACE_FOR_CELLS (uint32_t) (PAGE_SIZE - ((sizeof(uint8_t) * 6) + sizeof(uint32_t))) // LEAF_NODE_HEADER_SIZE
 
 // LEAF_NODE_SPACE_FOR_CELLS / LEAF_NODE_CELL_SIZE
-#define LEAF_NODE_MAX_CELLS ((uint32_t) ((PAGE_SIZE - ((sizeof(uint8_t) * 4) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE)))
+#define LEAF_NODE_MAX_CELLS ((uint32_t) ((PAGE_SIZE - ((sizeof(uint8_t) * 6) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE)))
 
 // (LEAF_NODE_MAX_CELLS + 1) / 2
-#define LEAF_NODE_RIGHT_SPLIT_COUNT ((((uint32_t) ((PAGE_SIZE - ((sizeof(uint8_t) * 4) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE))) + 1) / 2)
+#define LEAF_NODE_RIGHT_SPLIT_COUNT ((((uint32_t) ((PAGE_SIZE - ((sizeof(uint8_t) * 6) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE))) + 1) / 2)
 
 // (LEAF_NODE_MAX_CELLS + 1) - LEAF_NODE_RIGHT_SPLIT_COUNT
-#define LEAF_NODE_LEFT_SPLIT_COUNT (uint32_t)((((uint32_t) ((PAGE_SIZE - ((sizeof(uint8_t) * 4) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE))) + 1) - ((((uint32_t) ((PAGE_SIZE - ((sizeof(uint8_t) * 4) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE))) + 1) / 2))
+#define LEAF_NODE_LEFT_SPLIT_COUNT (uint32_t)((((uint32_t) ((PAGE_SIZE - ((sizeof(uint8_t) * 3) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE))) + 1) - ((((uint32_t) ((PAGE_SIZE - ((sizeof(uint8_t) * 3) + sizeof(uint32_t))) / (sizeof(uint32_t) + COL_ID_SIZE + COL_VARCHAR_SIZE + COL_VARCHAR_SIZE))) + 1) / 2))
 
 
 
@@ -92,10 +93,10 @@ Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key);
  * INTERNAL NODE HEADER LAYOUT
  */
 #define INTERNAL_NODE_NUM_KEYS_SIZE (uint32_t) sizeof(uint32_t)
-#define INTERNAL_NODE_NUM_KEYS_OFFSET (uint32_t) (sizeof(uint8_t) * 4) // COMMON_NODE_HEADER_SIZE
+#define INTERNAL_NODE_NUM_KEYS_OFFSET (uint32_t) (sizeof(uint8_t) * 6) // COMMON_NODE_HEADER_SIZE
 #define INTERNAL_NODE_RIGHT_CHILD_SIZE (uint32_t) sizeof(uint32_t)
-#define INTERNAL_NODE_RIGHT_CHILD_OFFSET (uint32_t) ((uint32_t) (sizeof(uint8_t) * 4) + (uint32_t) sizeof(uint32_t)) // INTERNAL_NODE_NUM_KEYS_OFFSET + INTERNAL_NODE_NUM_KEYS_SIZE
-#define INTERNAL_NODE_HEADER_SIZE (uint32_t) ((uint8_t) (sizeof(uint8_t) * 4) + (uint32_t) sizeof(uint32_t) + (uint32_t) sizeof(uint32_t)) // COMMON_NODE_HEADER_SIZE + INTERNAL_NODE_NUM_KEYS_SIZE + INTERNAL_NODE_RIGHT_CHILD_SIZE
+#define INTERNAL_NODE_RIGHT_CHILD_OFFSET (uint32_t) ((uint32_t) (sizeof(uint8_t) * 6) + (uint32_t) sizeof(uint32_t)) // INTERNAL_NODE_NUM_KEYS_OFFSET + INTERNAL_NODE_NUM_KEYS_SIZE
+#define INTERNAL_NODE_HEADER_SIZE (uint32_t) ((uint8_t) (sizeof(uint8_t) * 6) + (uint32_t) sizeof(uint32_t) + (uint32_t) sizeof(uint32_t)) // COMMON_NODE_HEADER_SIZE + INTERNAL_NODE_NUM_KEYS_SIZE + INTERNAL_NODE_RIGHT_CHILD_SIZE
 
 /**
  * INTERNAL NODE BODY LAYOUT
