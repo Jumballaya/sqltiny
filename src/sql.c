@@ -63,9 +63,6 @@ PrepareResult sql_prepare_statement(InputBuffer* buf, Statement* stmt) {
 ExecuteResult sql_execute_insert(Statement* stmt, Table* table) {
   void* node = db_get_page(table->pager, table->root_page_num);
   uint32_t num_cells = (*btree_leaf_node_num_cells(node));
-  if (num_cells >= LEAF_NODE_MAX_CELLS) {
-    return EXECUTE_TABLE_FULL;
-  }
 
   Row* row = &(stmt->row);
   uint32_t key = row->id;

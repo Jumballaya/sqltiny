@@ -53,6 +53,7 @@ struct Pager_t {
 typedef struct Pager_t Pager;
 
 void* db_get_page(Pager* pager, uint32_t page_count);
+uint32_t db_get_unused_page_num(Pager* pager);
 
 // Table
 struct Table_t {

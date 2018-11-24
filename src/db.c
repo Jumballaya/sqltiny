@@ -170,6 +170,7 @@ Table* db_open(const char* filename) {
     // New DB file, init page 0 as leaf node
     void* root_node = db_get_page(pager, 0);
     btree_initialize_leaf_node(root_node);
+    btree_node_set_root(root_node, true);
   }
 
   return table;
@@ -219,4 +220,9 @@ void db_cursor_advance(Cursor* cursor) {
   if (cursor->cell_num >= (*btree_leaf_node_num_cells(node))) {
     cursor->end = true;
   }
+}
+
+// Until we start recycling free pages, new pages will always go until the end of the db file
+uint32_t db_get_unused_page_num(Pager* pager) {
+  return pager->num_pages;
 }
