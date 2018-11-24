@@ -11,6 +11,13 @@
 #include "repl.h"
 #include "util.h"
 
+// Adds n amount of spaces as an indent
+void indent(uint32_t level) {
+  for (uint32_t i = 0; i < level; i++) {
+    printf("  ");
+  }
+}
+
 // Print Constants
 void print_constants(Table* t) {
   printf("  ROW_SIZE: %d\n", t->row_size);
@@ -19,6 +26,37 @@ void print_constants(Table* t) {
   printf("  LEAF_NODE_CELL_SIZE: %d\n", LEAF_NODE_CELL_SIZE);
   printf("  LEAF_NODE_SPACE_FOR_CELLS: %d\n", LEAF_NODE_SPACE_FOR_CELLS);
   printf("  LEAF_NODE_MAX_CELLS: %d\n", LEAF_NODE_MAX_CELLS);
+}
+
+// Print Btree
+void print_tree(Pager* pager, uint32_t page_num, uint32_t indent_level) {
+  void* node = db_get_page(pager, page_num);
+  uint32_t num_keys, child;
+
+  switch (btree_get_node_type(node)) {
+    case (NODE_LEAF):
+      num_keys = *btree_leaf_node_num_cells(node);
+      indent(indent_level);
+      printf("- leaf (size %d)\n", num_keys);
+      for (uint32_t i = 0; i < num_keys; i++) {
+        indent(indent_level + 1);
+        printf("- %d\n", *btree_leaf_node_key(node, i));
+      }
+      break;
+    case (NODE_INTERNAL):
+      num_keys = *btree_internal_node_num_keys(node);
+      indent(indent_level);
+      printf("- internal (size %d)\n", num_keys);
+      for (uint32_t i = 0; i < num_keys; i++) {
+        child = *btree_internal_node_child(node, i);
+        print_tree(pager, child, indent_level + 1);
+        indent(indent_level);
+        printf("- key %d\n", *btree_internal_node_key(node, i));
+      }
+      child = *btree_internal_node_right_child(node);
+      print_tree(pager, child, indent_level + 1);
+      break;
+  }
 }
 
 // Print Btree

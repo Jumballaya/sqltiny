@@ -32,6 +32,16 @@ Cursor* btree_leaf_node_find(Table* table, uint32_t page_num, uint32_t key);
 
 void btree_leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value);
 
+uint32_t* btree_internal_node_num_keys(void* node);
+uint32_t* btree_internal_node_right_child(void* node);
+uint32_t* btree_internal_node_cell(void* node, uint32_t cell_num);
+uint32_t* btree_internal_node_child(void* node, uint32_t child_num);
+uint32_t* btree_internal_node_key(void* node, uint32_t key_num);
+void btree_initialize_internal_node(void* node);
+uint32_t btree_get_node_max_key(void* node);
+void btree_create_new_root(Table* table, uint32_t right_page_num);
+void btree_leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value);
+
 
 /**
  * COMMON NODE HEADER LAYOUT
