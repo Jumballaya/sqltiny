@@ -1,5 +1,8 @@
 /**
  * Config Parser
+ *
+ *  @TODO: Integrate this with the rest of the application so the user can use a .cfg file to setup
+ *        the database settings.
  */
 #include <stdio.h>
 #include <stdlib.h>

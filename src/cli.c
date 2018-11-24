@@ -1,5 +1,8 @@
 /**
  * CLI
+ *
+ *  @TODO: Add the ability to run a 1-off query against the database. Clean up the CLI code and
+ *      make it a little more extendable.
  */
 #include <stdio.h>
 #include <stdlib.h>

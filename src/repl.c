@@ -1,5 +1,8 @@
 /**
  * REPL
+ *
+ *  @TODO: Better control of the input, like back-arrows maybe multi-line.
+ *      The ability to change the database settings with SQL or commands.
  */
 #include <stdlib.h>
 #include <stdio.h>

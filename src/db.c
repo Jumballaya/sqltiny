@@ -1,5 +1,11 @@
 /**
  * Database
+ *
+ * @TODO: Right now there is only 1 schema [id username email]. I need to make this dynamic.
+ *
+ *      I need to be able to serialize and deserialize the schema as a part of each table.
+ *      When you read from a file it sets the schema and validates against it when you write to it.
+ *
  */
 #include <errno.h>
 #include <fcntl.h>

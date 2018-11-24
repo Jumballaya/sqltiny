@@ -1,5 +1,10 @@
 /**
  * SQL
+ *
+ *  @TODO: Implement basic CRUD syntax (starting with insert).
+ *      Build a lexer/parser for SQL. Then build a simple AST compiler
+ *      to compile to a simple machine code for the database VM.
+ *
  */
 #include <stdio.h>
 #include <string.h>
