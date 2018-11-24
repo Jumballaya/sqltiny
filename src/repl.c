@@ -40,7 +40,7 @@ void print_tree(Pager* pager, uint32_t page_num, uint32_t indent_level) {
       printf("- leaf (size %d)\n", num_keys);
       for (uint32_t i = 0; i < num_keys; i++) {
         indent(indent_level + 1);
-        printf("- %d\n", *btree_leaf_node_key(node, i));
+        printf("- %d : %d\n", i, *btree_leaf_node_key(node, i));
       }
       break;
     case (NODE_INTERNAL):
@@ -51,21 +51,11 @@ void print_tree(Pager* pager, uint32_t page_num, uint32_t indent_level) {
         child = *btree_internal_node_child(node, i);
         print_tree(pager, child, indent_level + 1);
         indent(indent_level);
-        printf("- key %d\n", *btree_internal_node_key(node, i));
+        printf("- %d : %d\n", i, *btree_internal_node_key(node, i));
       }
       child = *btree_internal_node_right_child(node);
       print_tree(pager, child, indent_level + 1);
       break;
-  }
-}
-
-// Print Btree
-void print_leaf_node(void* node) {
-  uint32_t num_cells = *btree_leaf_node_num_cells(node);
-  printf("- leaf (size %d)\n", num_cells);
-  for (uint32_t i = 0; i < num_cells; i++) {
-    uint32_t key = *btree_leaf_node_key(node, i);
-    printf("  - %d : %d\n", i, key);
   }
 }
 
@@ -125,7 +115,7 @@ CommandResult repl_command(InputBuffer* buf, Table* table) {
     return COMMAND_SUCCESS;
   } else if (strcmp(buf->buffer, ".btree") == 0) {
     printf("BTree:\n");
-    print_leaf_node(db_get_page(table->pager, 0));
+    print_tree(table->pager, 0, 0);
     return COMMAND_SUCCESS;
   } else if (strcmp(buf->buffer, ".help") == 0) {
     print_usage();

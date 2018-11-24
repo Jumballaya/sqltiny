@@ -282,9 +282,9 @@ describe 'database' do
 
     expect(result).to match_array([
       "> Constants:",
-      "  COMMON_NODE_HEADER_SIZE: 4",
+      "  COMMON_NODE_HEADER_SIZE: 3",
       "  LEAF_NODE_CELL_SIZE: 532",
-      "  LEAF_NODE_HEADER_SIZE: 8",
+      "  LEAF_NODE_HEADER_SIZE: 7",
       "  LEAF_NODE_MAX_CELLS: 7",
       "  LEAF_NODE_SPACE_FOR_CELLS: 4088",
       "  ROW_SIZE: 528",

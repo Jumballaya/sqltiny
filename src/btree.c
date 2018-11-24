@@ -175,7 +175,6 @@ uint32_t btree_get_node_max_key(void* node) {
     case NODE_LEAF:
       return *btree_leaf_node_key(node, *btree_leaf_node_num_cells(node) - 1);
   }
-  return -1;
 }
 
 void btree_create_new_root(Table* table, uint32_t right_page_num) {
@@ -183,7 +182,7 @@ void btree_create_new_root(Table* table, uint32_t right_page_num) {
   // address of the right child is passed in and re-init as root page to contain the
   // new root node. New root points to 2 children
   void* root = db_get_page(table->pager, table->root_page_num);
-  /*void* right_child = db_get_page(table->pager, right_page_num);*/
+  void* right_child = db_get_page(table->pager, right_page_num);
   uint32_t left_page_num = db_get_unused_page_num(table->pager);
   void* left_child = db_get_page(table->pager, left_page_num);
 
