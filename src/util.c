@@ -4,6 +4,8 @@
  * Mostly from K & R
  */
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 // String reverse from K & R 2nd Edition, page 62
 void reverse(char s[]) {
@@ -42,3 +44,66 @@ char* string_chop(char* base, char* sub) {
   cpy += strlen(sub);
   return cpy;
 };
+
+// array append
+char** array_append(char** a, char* s, int len) {
+  char **p = malloc(sizeof(char*) * (len));
+  memmove(p, a, sizeof(char*) * len);
+  p[len] = s;
+  return p;
+}
+
+// string split
+char** str_split(char* s, char* delim) {
+  // convert char* to char[]
+  char str[strlen(s)];
+  strcpy(str, s);
+
+  int len = 0;
+  char** ret = malloc(sizeof(char*) * strlen(s));
+  char *token;
+
+  // Go through the tokens and append to an array
+  token = strtok(str, delim);
+  while(token != NULL) {
+    char* ns = malloc(sizeof(char*));
+    strcpy(ns, token);
+    ret = array_append(ret, ns, len);
+    len += 1;
+    token = strtok(NULL, delim);
+  }
+
+  return ret;
+}
+
+// string append
+char* append(char* s, char c) {
+  int len = strlen(s);
+
+  char* p = malloc(sizeof(char) * (len + 1));
+  strcpy(p, s);
+  p[len] = c;
+  p[len+1] = '\0';
+
+  return p;
+}
+
+// string trim whitespace
+void trim(char* s) {
+  char *p = s;
+  int len = strlen(p);
+
+  while(isspace(p[len - 1])) {
+    p[--len] = 0;
+  }
+
+  while(*p && isspace(*p)) {
+    ++p;
+    --len;
+  }
+
+  memmove(s, p, len + 1);
+}
+
+
+
