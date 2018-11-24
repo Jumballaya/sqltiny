@@ -242,3 +242,31 @@ void btree_leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) 
     exit(EXIT_FAILURE);
   }
 }
+
+Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key) {
+  void* node = db_get_page(table->pager, page_num);
+  uint32_t num_keys = *btree_internal_node_num_keys(node);
+
+  // Binary search to find the index of the child to search
+  uint32_t min_i = 0;
+  uint32_t max_i = num_keys;
+
+  while (min_i != max_i) {
+    uint32_t i = (min_i + max_i) / 2;
+    uint32_t right_key = *btree_internal_node_key(node, i);
+    if (right_key >= key) {
+      max_i = i;
+    } else {
+      min_i = i + 1;
+    }
+  }
+
+  uint32_t child_num = *btree_internal_node_child(node, min_i);
+  void* child = db_get_page(table->pager, child_num);
+  switch (btree_get_node_type(child)) {
+    case NODE_LEAF:
+      return btree_leaf_node_find(table, child_num, key);
+    case NODE_INTERNAL:
+      return btree_internal_node_find(table, child_num, key);
+  }
+}

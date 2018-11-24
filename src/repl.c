@@ -18,6 +18,7 @@ void indent(uint32_t level) {
   }
 }
 
+
 // Print Constants
 void print_constants(Table* t) {
   printf("  ROW_SIZE: %d\n", t->row_size);
@@ -26,6 +27,25 @@ void print_constants(Table* t) {
   printf("  LEAF_NODE_CELL_SIZE: %d\n", LEAF_NODE_CELL_SIZE);
   printf("  LEAF_NODE_SPACE_FOR_CELLS: %d\n", LEAF_NODE_SPACE_FOR_CELLS);
   printf("  LEAF_NODE_MAX_CELLS: %d\n", LEAF_NODE_MAX_CELLS);
+  printf("  LEAF_NODE_LEFT_SPLIT_COUNT: %d\n", LEAF_NODE_LEFT_SPLIT_COUNT);
+  printf("  LEAF_NODE_RIGHT_SPLIT_COUNT: %d\n", LEAF_NODE_RIGHT_SPLIT_COUNT);
+  printf("  PAGE_SIZE: %d\n", PAGE_SIZE);
+  printf("  COL_VARCHAR_SIZE: %d\n", COL_VARCHAR_SIZE);
+  printf("  COL_INT_SIZE: %d\n", COL_INT_SIZE);
+  printf("  COL_ID_SIZE: %d\n", COL_ID_SIZE);
+  printf("  NODE_TYPE_SIZE: %d\n", NODE_TYPE_SIZE);
+  printf("  NODE_TYPE_OFFSET: %d\n", NODE_TYPE_OFFSET);
+  printf("  I_ROOT_SIZE: %d\n", I_ROOT_SIZE);
+  printf("  I_ROOT_OFFSET: %d\n", I_ROOT_OFFSET);
+  printf("  PARENT_POINTER_SIZE: %d\n", PARENT_POINTER_SIZE);
+  printf("  PARENT_POINTER_OFFSET: %d\n", PARENT_POINTER_OFFSET);
+  printf("  COMMON_NODE_HEADER_SIZE: %d\n", COMMON_NODE_HEADER_SIZE);
+  printf("  LEAF_NODE_NUM_CELLS_SIZE: %d\n", LEAF_NODE_NUM_CELLS_SIZE);
+  printf("  LEAF_NODE_NUM_CELLS_OFFSET: %d\n", LEAF_NODE_NUM_CELLS_OFFSET);
+  printf("  LEAF_NODE_KEY_SIZE: %d\n", LEAF_NODE_KEY_SIZE);
+  printf("  LEAF_NODE_KEY_OFFSET: %d\n", LEAF_NODE_KEY_OFFSET);
+  printf("  LEAF_NODE_VALUE_SIZE: %d\n", LEAF_NODE_VALUE_SIZE);
+  printf("  LEAF_NODE_VALUE_OFFSET: %d\n", LEAF_NODE_VALUE_OFFSET);
 }
 
 // Print Btree
@@ -40,7 +60,7 @@ void print_tree(Pager* pager, uint32_t page_num, uint32_t indent_level) {
       printf("- leaf (size %d)\n", num_keys);
       for (uint32_t i = 0; i < num_keys; i++) {
         indent(indent_level + 1);
-        printf("- %d : %d\n", i, *btree_leaf_node_key(node, i));
+        printf("- %d\n", *btree_leaf_node_key(node, i));
       }
       break;
     case (NODE_INTERNAL):
@@ -51,7 +71,7 @@ void print_tree(Pager* pager, uint32_t page_num, uint32_t indent_level) {
         child = *btree_internal_node_child(node, i);
         print_tree(pager, child, indent_level + 1);
         indent(indent_level);
-        printf("- %d : %d\n", i, *btree_internal_node_key(node, i));
+        printf("- key %d\n", *btree_internal_node_key(node, i));
       }
       child = *btree_internal_node_right_child(node);
       print_tree(pager, child, indent_level + 1);

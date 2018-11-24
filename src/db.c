@@ -178,10 +178,7 @@ Table* db_open(const char* filename) {
 
 // Table Start (create a cursor at the start of the table)
 Cursor* db_table_start(Table* table) {
-  Cursor* cursor = malloc(sizeof(Cursor));
-  cursor->table = table;
-  cursor->page_num = table->root_page_num;
-  cursor->cell_num = 0;
+  Cursor* cursor = db_table_find(table, 0);
 
   void* root_node = db_get_page(table->pager, table->root_page_num);
   uint32_t num_cells = *btree_leaf_node_num_cells(root_node);
@@ -200,8 +197,8 @@ Cursor* db_table_find(Table* table, uint32_t key) {
   if (btree_get_node_type(root_node) == NODE_LEAF) {
     return btree_leaf_node_find(table, root_page_num, key);
   }
-  printf("error: need to implement searching an internal node\n");
-  exit(EXIT_FAILURE);
+
+  return btree_internal_node_find(table, root_page_num, key);
 }
 
 // Get the memory position for the cursor
