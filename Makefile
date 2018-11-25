@@ -26,6 +26,7 @@ DIR_SRC = src/
 DIR_BUILD = build/
 DIR_BUILD_OBJECTS = $(DIR_BUILD)objects/
 DIR_BUILD_TESTS = $(DIR_BUILD)tests/
+DIR_BUILD_LOGS = $(DIR_BUILD)logs/
 
 DIR_INSTALL = /usr/bin/
 
@@ -38,10 +39,13 @@ DIR_TESTS_C = $(DIR_TESTS)unit/
 DIR_INC = include/
 DIR_INC_TESTS = $(DIR_TESTS)$(DIR_INC)
 
+DIR_VALGRIND = $(DIR_BUILD_LOGS)valgrind.log
+
 
 # Compiler settings
 CC = gcc
 FLAGS = -Wall
+FLAGS_DEBUG= -g
 INC = -I $(DIR_INC)
 INC_TESTS = -I $(DIR_INC) -I $(DIR_INC_TESTS)
 
@@ -68,6 +72,9 @@ $(DIR_BUILD_OBJECTS)%.o: $(DIR_SRC)%.c $(HEADERS) $(DIR_BUILD_OBJECTS)
 	$(MKDIR) $(DIR_BUILD_OBJECTS)
 	$(CC) -c -o $@ $< $(FLAGS) $(INC)
 
+$(DIR_BUILD_LOGS):
+	$(MKDIR) $(DIR_BUILD_LOGS)
+
 $(DIR_BUILD_OBJECTS):
 	$(MKDIR) $(DIR_BUILD_OBJECTS)
 
@@ -76,6 +83,15 @@ $(DIR_BUILD_TESTS):
 
 $(DIR_BUILD):
 	$(MKDIR) $(DIR_BUILD)
+
+# Debug
+debug: $(OBJ)
+	$(MKDIR) $(DIR_BIN)
+	$(CC) $(FLAGS_DEBUG) -o $(DIR_BIN)$(BIN_NAME)_debug $(ENTRY) $^
+
+# Valgrind
+valgrind: $(DIR_BIN)$(BIN_NAME)_debug $(DIR_BUILD_LOGS)
+	valgrind -v --tool=memcheck --leak-check=full --num-callers=40 --log-file=$(DIR_VALGRIND) $<
 
 # Clean
 clean:
@@ -108,3 +124,4 @@ install:
 .PHONY: build-tests
 .PHONY: test
 .PHONY: install
+.PHONY: debug
