@@ -76,10 +76,15 @@ void* btree_leaf_node_value(void* node, uint32_t cell_num) {
   return btree_leaf_node_cell(node, cell_num) + LEAF_NODE_KEY_SIZE;
 };
 
+uint32_t* btree_leaf_node_next_leaf(void* node) {
+  return node + LEAF_NODE_NEXT_LEAF_OFFSET;
+}
+
 void btree_initialize_leaf_node(void* node) {
   btree_set_node_type(node, NODE_LEAF);
   btree_node_set_root(node, false);
   *btree_leaf_node_num_cells(node) = 0;
+  *btree_leaf_node_next_leaf(node) = 0; // 0 means no sibling
 };
 
 void btree_leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
@@ -159,13 +164,18 @@ uint32_t* btree_internal_node_child(void* node, uint32_t child_num) {
 }
 
 uint32_t* btree_internal_node_key(void* node, uint32_t key_num) {
-  return btree_internal_node_cell(node, key_num) + INTERNAL_NODE_CHILD_SIZE;
+  return (void*)btree_internal_node_cell(node, key_num) + INTERNAL_NODE_CHILD_SIZE;
 }
 
 void btree_initialize_internal_node(void* node) {
   btree_set_node_type(node, NODE_INTERNAL);
   btree_node_set_root(node, false);
   *btree_internal_node_num_keys(node) = 0;
+}
+
+void btree_update_internal_node_key(void* node, uint32_t old_key, uint32_t new_key) {
+  uint32_t old_child_index = btree_internal_node_find_child(node, old_key);
+  *btree_internal_node_key(node, old_child_index) = new_key;
 }
 
 uint32_t btree_get_node_max_key(void* node) {
@@ -175,6 +185,10 @@ uint32_t btree_get_node_max_key(void* node) {
     case NODE_LEAF:
       return *btree_leaf_node_key(node, *btree_leaf_node_num_cells(node) - 1);
   }
+}
+
+uint32_t* btree_node_parent(void* node) {
+  return node + PARENT_POINTER_OFFSET;
 }
 
 void btree_create_new_root(Table* table, uint32_t right_page_num) {
@@ -198,6 +212,8 @@ void btree_create_new_root(Table* table, uint32_t right_page_num) {
   uint32_t left_max_key = btree_get_node_max_key(left_child);
   *btree_internal_node_key(root, 0) = left_max_key;
   *btree_internal_node_right_child(root) = right_page_num;
+  *btree_node_parent(left_child) = table->root_page_num;
+  *btree_node_parent(right_child) = table->root_page_num;
 }
 
 void btree_leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
@@ -205,9 +221,13 @@ void btree_leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) 
   // Insert the new value in one of the two nodes
   // Update the parent or create a new parent
   void* old_node = db_get_page(cursor->table->pager, cursor->page_num);
+  uint32_t old_max = btree_get_node_max_key(old_node);
   uint32_t new_page_num = db_get_unused_page_num(cursor->table->pager);
   void* new_node = db_get_page(cursor->table->pager, new_page_num);
   btree_initialize_leaf_node(new_node);
+  *btree_node_parent(new_node) = *btree_node_parent(old_node);
+  *btree_leaf_node_next_leaf(new_node) = *btree_leaf_node_next_leaf(old_node);
+  *btree_leaf_node_next_leaf(old_node) = new_page_num;
 
   // All existing keys plus new key should be divided evenly between
   // old (left) and new (right). Starting from the right, move each key to
@@ -223,7 +243,8 @@ void btree_leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) 
     void* dest = btree_leaf_node_cell(dest_node, index_in_node);
 
     if (i == cursor->cell_num) {
-      db_serialize_row(value, dest);
+      db_serialize_row(value, btree_leaf_node_value(dest_node, index_in_node));
+      *btree_leaf_node_key(dest_node, index_in_node) = key;
     } else if (i > cursor->cell_num) {
       memcpy(dest, btree_leaf_node_cell(old_node, i - 1), LEAF_NODE_CELL_SIZE);
     } else {
@@ -238,16 +259,20 @@ void btree_leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) 
   if (is_root(old_node)) {
     return btree_create_new_root(cursor->table, new_page_num);
   } else {
-    printf("error: need to implement updating parent after split\n");
-    exit(EXIT_FAILURE);
+    uint32_t parent_page_num = *btree_node_parent(old_node);
+    uint32_t new_max = btree_get_node_max_key(old_node);
+    void* parent = db_get_page(cursor->table->pager, parent_page_num);
+    btree_update_internal_node_key(parent, old_max, new_max);
+    btree_internal_node_insert(cursor->table, parent_page_num, new_page_num);
+    return;
   }
 }
 
-Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key) {
-  void* node = db_get_page(table->pager, page_num);
+uint32_t btree_internal_node_find_child(void* node, uint32_t key) {
+  // Return the index of the child which should contain the given key
   uint32_t num_keys = *btree_internal_node_num_keys(node);
 
-  // Binary search to find the index of the child to search
+  // Binary search
   uint32_t min_i = 0;
   uint32_t max_i = num_keys;
 
@@ -261,12 +286,55 @@ Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key) 
     }
   }
 
-  uint32_t child_num = *btree_internal_node_child(node, min_i);
+  return min_i;
+}
+
+Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key) {
+  void* node = db_get_page(table->pager, page_num);
+
+  uint32_t child_index = btree_internal_node_find_child(node, key);
+  uint32_t child_num = *btree_internal_node_child(node, child_index);
   void* child = db_get_page(table->pager, child_num);
   switch (btree_get_node_type(child)) {
     case NODE_LEAF:
       return btree_leaf_node_find(table, child_num, key);
     case NODE_INTERNAL:
       return btree_internal_node_find(table, child_num, key);
+  }
+}
+
+void btree_internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child_page_num) {
+  // Add a new child/key pair to the parent that corresponds to the child
+  void* parent = db_get_page(table->pager, parent_page_num);
+  void* child = db_get_page(table->pager, child_page_num);
+  uint32_t child_max_key = btree_get_node_max_key(child);
+  uint32_t index = btree_internal_node_find_child(parent, child_max_key);
+
+  uint32_t og_num_keys = *btree_internal_node_num_keys(parent);
+  *btree_internal_node_num_keys(parent) = og_num_keys + 1;
+
+  if (og_num_keys >= INTERNAL_NODE_MAX_CELLS) {
+    printf("Need to implement splitting internal node\n");
+    exit(EXIT_FAILURE);
+  }
+
+  uint32_t right_child_page_num = *btree_internal_node_right_child(parent);
+  void* right_child = db_get_page(table->pager, right_child_page_num);
+
+
+  if (child_max_key > btree_get_node_max_key(right_child)) {
+    // replace right child
+    *btree_internal_node_child(parent, og_num_keys) = right_child_page_num;
+    *btree_internal_node_key(parent, og_num_keys) = btree_get_node_max_key(right_child);
+    *btree_internal_node_right_child(parent) = child_page_num;
+  } else {
+    // Make room for new cell
+    for (uint32_t i = og_num_keys; i > index; i--) {
+      void* dest = btree_internal_node_cell(parent, i);
+      void* src = btree_internal_node_cell(parent, i - 1);
+      memcpy(dest, src, INTERNAL_NODE_CELL_SIZE);
+    }
+    *btree_internal_node_child(parent, index) = child_page_num;
+    *btree_internal_node_key(parent, index) = child_max_key;
   }
 }

@@ -26,6 +26,7 @@ void* btree_leaf_node_cell(void* node, uint32_t cell_num);
 uint32_t* btree_leaf_node_key(void* node, uint32_t cell_num);
 void* btree_leaf_node_value(void* node, uint32_t cell_num);
 void btree_initialize_leaf_node(void* node);
+uint32_t* btree_leaf_node_next_leaf(void* node);
 
 void btree_leaf_node_insert(Cursor* cursor, uint32_t key, Row* value);
 Cursor* btree_leaf_node_find(Table* table, uint32_t page_num, uint32_t key);
@@ -41,7 +42,9 @@ void btree_initialize_internal_node(void* node);
 uint32_t btree_get_node_max_key(void* node);
 void btree_create_new_root(Table* table, uint32_t right_page_num);
 void btree_leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value);
+uint32_t btree_internal_node_find_child(void* node, uint32_t key);
 Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key);
+void btree_internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child_page_num);
 
 
 
@@ -62,8 +65,9 @@ Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key);
  */
 #define LEAF_NODE_NUM_CELLS_SIZE (uint32_t) sizeof(uint32_t)
 #define LEAF_NODE_NUM_CELLS_OFFSET (uint32_t) (sizeof(uint8_t) * 6) // COMMON_NODE_HEADER_SIZE
-//#define LEAF_NODE_HEADER_SIZE (uint32_t) ((sizeof(uint8_t) * 3) + sizeof(uint32_t)) // COMMON_NODE_HEADER_SIZE + LEAF_NODE_NUM_CELLS_SIZE
-#define LEAF_NODE_HEADER_SIZE (uint32_t)14
+#define LEAF_NODE_NEXT_LEAF_SIZE (uint32_t) sizeof(uint32_t)
+#define LEAF_NODE_NEXT_LEAF_OFFSET (uint32_t)((sizeof(uint8_t) * 6) + (sizeof(uint32_t))) // LEAF_NODE_NUM_CELLS_OFFSET + LEAF_NODE_NUM_CELLS_SIZE
+#define LEAF_NODE_HEADER_SIZE (uint32_t) ((sizeof(uint8_t) * 6) + sizeof(uint32_t) + sizeof(uint32_t)) // COMMON_NODE_HEADER_SIZE + LEAF_NODE_NUM_CELLS_SIZE + LEAF_NODE_NEXT_LEAF_SIZE
 
 /**
  * LEAF NODE BODY LAYOUT
@@ -97,6 +101,7 @@ Cursor* btree_internal_node_find(Table* table, uint32_t page_num, uint32_t key);
 #define INTERNAL_NODE_RIGHT_CHILD_SIZE (uint32_t) sizeof(uint32_t)
 #define INTERNAL_NODE_RIGHT_CHILD_OFFSET (uint32_t) ((uint32_t) (sizeof(uint8_t) * 6) + (uint32_t) sizeof(uint32_t)) // INTERNAL_NODE_NUM_KEYS_OFFSET + INTERNAL_NODE_NUM_KEYS_SIZE
 #define INTERNAL_NODE_HEADER_SIZE (uint32_t) ((uint8_t) (sizeof(uint8_t) * 6) + (uint32_t) sizeof(uint32_t) + (uint32_t) sizeof(uint32_t)) // COMMON_NODE_HEADER_SIZE + INTERNAL_NODE_NUM_KEYS_SIZE + INTERNAL_NODE_RIGHT_CHILD_SIZE
+#define INTERNAL_NODE_MAX_CELLS 3
 
 /**
  * INTERNAL NODE BODY LAYOUT

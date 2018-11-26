@@ -180,8 +180,8 @@ Table* db_open(const char* filename) {
 Cursor* db_table_start(Table* table) {
   Cursor* cursor = db_table_find(table, 0);
 
-  void* root_node = db_get_page(table->pager, table->root_page_num);
-  uint32_t num_cells = *btree_leaf_node_num_cells(root_node);
+  void* node = db_get_page(table->pager, cursor->page_num);
+  uint32_t num_cells = *btree_leaf_node_num_cells(node);
   cursor->end = (num_cells == 0);
 
   return cursor;
@@ -215,7 +215,15 @@ void db_cursor_advance(Cursor* cursor) {
   cursor->cell_num += 1;
 
   if (cursor->cell_num >= (*btree_leaf_node_num_cells(node))) {
-    cursor->end = true;
+    // Advance to next leaf node
+    uint32_t next_page_num = *btree_leaf_node_next_leaf(node);
+    if (next_page_num == 0) {
+      // Right most leaf
+      cursor->end = true;
+    } else {
+      cursor->page_num = next_page_num;
+      cursor->cell_num = 0;
+    }
   }
 }
 
